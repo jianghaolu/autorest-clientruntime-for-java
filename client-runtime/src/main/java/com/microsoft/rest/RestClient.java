@@ -245,7 +245,7 @@ public final class RestClient {
                 throw new NullPointerException("credentials == null");
             }
             this.credentials = credentials;
-            credentials.applyCredentialsFilter(httpClientBuilder);
+            httpClientBuilder.authenticator(credentials);
 
             return this;
         }

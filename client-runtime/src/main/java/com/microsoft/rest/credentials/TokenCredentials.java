@@ -7,14 +7,16 @@
 
 package com.microsoft.rest.credentials;
 
-import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Route;
 
 import java.io.IOException;
 
 /**
  * Token based credentials for use with a REST Service Client.
  */
-public class TokenCredentials implements ServiceClientCredentials {
+public class TokenCredentials extends ServiceClientCredentials {
     /** The authentication scheme. */
     private String scheme;
 
@@ -41,38 +43,14 @@ public class TokenCredentials implements ServiceClientCredentials {
      * @return the secure token.
      * @throws IOException exception thrown from token acquisition operations.
      */
-    public String getToken() throws IOException {
+    public String getToken(Request request) throws IOException {
         return token;
     }
 
-    /**
-     * Refresh the secure token.
-     * @throws IOException exception thrown from token acquisition operations.
-     */
-    public void refreshToken() throws IOException {
-        // do nothing
-    }
-
-    /**
-     * Set the secure token.
-     *
-     * @param token the token string
-     */
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    /**
-     * Get the authentication scheme.
-     *
-     * @return the authentication scheme
-     */
-    public String getScheme() {
-        return scheme;
-    }
-
     @Override
-    public void applyCredentialsFilter(OkHttpClient.Builder clientBuilder) {
-        clientBuilder.interceptors().add(new TokenCredentialsInterceptor(this));
+    public final Request authenticate(Route route, Response response) throws IOException {
+        return response.request().newBuilder()
+            .header("Authorization", scheme + " " + getToken(response.request()))
+            .build();
     }
 }

@@ -7,17 +7,30 @@
 
 package com.microsoft.rest.credentials;
 
-import okhttp3.OkHttpClient;
+import okhttp3.Authenticator;
 
 /**
  * ServiceClientCredentials is the abstraction for credentials used by
  * ServiceClients accessing REST services.
  */
-public interface ServiceClientCredentials {
-    /**
-     * Apply the credentials to the HTTP client builder.
-     *
-     * @param clientBuilder the builder for building up an {@link OkHttpClient}
-     */
-    void applyCredentialsFilter(OkHttpClient.Builder clientBuilder);
+public abstract class ServiceClientCredentials implements Authenticator {
+
+    private DataStore.Factory dataStoreFactory;
+
+    public ServiceClientCredentials() {
+        dataStoreFactory = MemoryDataStoreFactory.INSTANCE;
+    }
+
+    public ServiceClientCredentials(final DataStore.Factory dataStoreFactory) {
+        this.dataStoreFactory = dataStoreFactory;
+    }
+
+    public DataStore.Factory dataStoreFactory() {
+        return dataStoreFactory;
+    }
+
+    public ServiceClientCredentials withDataStoreFactory(DataStore.Factory dataStoreFactory) {
+        this.dataStoreFactory = dataStoreFactory;
+        return this;
+    }
 }
