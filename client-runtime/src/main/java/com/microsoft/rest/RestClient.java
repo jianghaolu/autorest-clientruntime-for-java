@@ -15,6 +15,7 @@ import com.microsoft.rest.interceptors.UserAgentInterceptor;
 import com.microsoft.rest.protocol.Environment;
 import com.microsoft.rest.protocol.ResponseBuilder;
 import com.microsoft.rest.protocol.SerializerAdapter;
+import com.microsoft.rest.protocol.SslContextLoader;
 import com.microsoft.rest.retry.RetryHandler;
 import com.microsoft.rest.retry.RetryStrategy;
 import okhttp3.Authenticator;
@@ -415,6 +416,18 @@ public final class RestClient {
          */
         public Builder withRetryStrategy(RetryStrategy strategy) {
             this.retryStrategy = retryStrategy;
+            return this;
+        }
+
+        /**
+         * Sets the socket factory and trust manager used to secure HTTPS connections. If unset, the
+         * system defaults will be used.
+         *
+         * @param sslContextLoader the SSL context loader
+         * @return the builder itself for chaining
+         */
+        public Builder withSslContextLoader(SslContextLoader sslContextLoader) {
+            sslContextLoader.applySslContext(httpClientBuilder);
             return this;
         }
 
