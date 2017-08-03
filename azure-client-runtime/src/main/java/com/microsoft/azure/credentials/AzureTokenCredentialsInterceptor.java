@@ -16,6 +16,8 @@ import java.io.IOException;
  * Token credentials filter for placing a token credential into request headers.
  */
 public final class AzureTokenCredentialsInterceptor implements Interceptor {
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+
     /**
      * The credentials instance to apply to the HTTP client pipeline.
      */
@@ -33,10 +35,14 @@ public final class AzureTokenCredentialsInterceptor implements Interceptor {
 
     @Override
     public Response intercept(Chain chain) throws IOException {
-        String token = credentials.getToken(chain.request());
-        Request newRequest = chain.request().newBuilder()
-                .header("Authorization", "Bearer " + token)
-                .build();
-        return chain.proceed(newRequest);
+        Request request = chain.request();
+        if (chain.request().header(AUTHORIZATION_HEADER) == null
+                || chain.request().header(AUTHORIZATION_HEADER).isEmpty()) {
+            String token = credentials.getToken(chain.request());
+            request = chain.request().newBuilder()
+                    .header(AUTHORIZATION_HEADER, "Bearer " + token)
+                    .build();
+        }
+        return chain.proceed(request);
     }
 }
