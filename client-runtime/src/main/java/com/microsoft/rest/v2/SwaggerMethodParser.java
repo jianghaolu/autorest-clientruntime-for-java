@@ -6,8 +6,6 @@
 
 package com.microsoft.rest.v2;
 
-import com.google.common.escape.Escaper;
-import com.google.common.net.UrlEscapers;
 import com.microsoft.rest.v2.annotations.BodyParam;
 import com.microsoft.rest.v2.annotations.DELETE;
 import com.microsoft.rest.v2.annotations.ExpectedResponses;
@@ -28,6 +26,8 @@ import com.microsoft.rest.v2.http.HttpHeaders;
 import com.microsoft.rest.v2.http.HttpMethod;
 import com.microsoft.rest.v2.protocol.SerializerAdapter;
 import com.microsoft.rest.v2.util.TypeUtil;
+import com.microsoft.rest.v2.util.escapers.Escaper;
+import com.microsoft.rest.v2.util.escapers.UrlEscapers;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 
