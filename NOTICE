@@ -1,0 +1,12 @@
+AutoRest client runtime for Java
+Copyright 2016-2018 Microsoft Corporation
+
+This product includes software developed at Microsoft Corporation.
+Released under the MIT License (MIT).
+
+
+This product includes the following third party libraries.
+
+Guava (https://github.com/google/guava)
+Copyright (C) 2009 The Guava Authors
+Released under the Apache License, Version 2.0.
