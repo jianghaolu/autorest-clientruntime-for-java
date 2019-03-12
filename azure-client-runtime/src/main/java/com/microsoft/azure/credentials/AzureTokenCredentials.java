@@ -14,10 +14,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.Route;
+import rx.functions.Func3;
 
 import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.Proxy;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -136,6 +138,15 @@ public abstract class AzureTokenCredentials extends TokenCredentials {
      * @return the credential itself
      */
     public AzureTokenCredentials withProxy(Proxy proxy) {
+        this.proxy = proxy;
+        return this;
+    }
+
+    /**
+     * @param proxy the proxy being used for accessing Active Directory
+     * @return the credential itself
+     */
+    public AzureTokenCredentials withProxy(Proxy proxy, Func3<String, String, List<String>, String> challengeHandler) {
         this.proxy = proxy;
         return this;
     }

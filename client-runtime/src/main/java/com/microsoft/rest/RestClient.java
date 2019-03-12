@@ -6,8 +6,10 @@
 
 package com.microsoft.rest;
 
+import com.google.common.io.BaseEncoding;
 import com.microsoft.azure.management.apigeneration.Beta;
 import com.microsoft.azure.management.apigeneration.Beta.SinceVersion;
+import com.microsoft.rest.credentials.BasicAuthenticationCredentials;
 import com.microsoft.rest.credentials.ServiceClientCredentials;
 import com.microsoft.rest.interceptors.BaseUrlHandler;
 import com.microsoft.rest.interceptors.CustomHeadersInterceptor;
@@ -25,13 +27,18 @@ import okhttp3.Dispatcher;
 import okhttp3.Interceptor;
 import okhttp3.JavaNetCookieJar;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Route;
 import okio.AsyncTimeout;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
 
+import java.io.IOException;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.Proxy;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
@@ -456,6 +463,19 @@ public final class RestClient {
         public Builder withProxy(Proxy proxy) {
             httpClientBuilder.proxy(proxy);
             return this;
+        }
+
+        public Builder withProxy(Proxy proxy, String username, String password) {
+            final String auth = BaseEncoding.base64().encode((username + ":" + password).getBytes(StandardCharsets.UTF_8));
+            return withProxy(proxy)
+                .withProxyAuthenticator(new Authenticator() {
+                    @Override
+                    public Request authenticate(Route route, Response response) throws IOException {
+                        return response.request().newBuilder()
+                                .addHeader("Proxy-Authentication", auth)
+                                .build();
+                    }
+                });
         }
 
         /**
