@@ -66,7 +66,7 @@ class SharedChannelPool implements ChannelPool {
     private final SslContext sslContext;
     private volatile boolean closed = false;
     private final Logger logger = LoggerFactory.getLogger(SharedChannelPool.class);
-    AtomicInteger wip = new AtomicInteger(0);
+    private AtomicInteger wip = new AtomicInteger(0);
 
     private boolean isChannelHealthy(Channel channel) {
         try {
@@ -120,8 +120,17 @@ class SharedChannelPool implements ChannelPool {
         }
         while (!closed && wip.updateAndGet(x -> requests.size()) != 0) {
             if (channelCount.get() >= poolSize && available.size() == 0) {
-                wip.set(0);
-                break;
+                Channel first = leased.peekFirst();
+                while (first != null && !isChannelHealthy(first)) {
+                    leased.poll();
+                    closeChannel(first);
+                    channelCount.decrementAndGet();
+                    first = leased.peekFirst();
+                }
+                if (channelCount.get() >= poolSize && available.size() == 0) {
+                    wip.set(0);
+                    break;
+                }
             }
             // requests must be non-empty based on the above condition
             ChannelRequest request;

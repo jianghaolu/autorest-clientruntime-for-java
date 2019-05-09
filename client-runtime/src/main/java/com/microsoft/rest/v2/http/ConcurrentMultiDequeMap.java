@@ -86,6 +86,24 @@ public class ConcurrentMultiDequeMap<K, V> {
         }
         return poll(key);
     }
+
+    /**
+     * Retrieves and removes one item from the multi map. The item is from
+     * the least recently used key set.
+     * @return the item removed from the map
+     */
+    public V peekFirst() {
+        K key;
+        synchronized (size) {
+            if (size.get() == 0) {
+                return null;
+            } else {
+                key = lru.getFirst();
+            }
+        }
+        return peekFirst(key);
+    }
+
     /**
      * Retrieves and removes one item from the multi map. The item is from
      * the most recently used key set.
@@ -125,6 +143,28 @@ public class ConcurrentMultiDequeMap<K, V> {
                     data.remove(key);
                     lru.remove(key);
                 }
+            }
+            return ret;
+        }
+    }
+
+    /**
+     * Retrieves the least recently used item in the deque for the given key.
+     *
+     * @param key the key to poll an item
+     * @return the least recently used item for the key
+     */
+    public V peekFirst(K key) {
+        if (!data.containsKey(key)) {
+            return null;
+        } else {
+            ConcurrentLinkedDeque<V> queue = data.get(key);
+            V ret;
+            synchronized (size) {
+                if (queue == null || queue.isEmpty()) {
+                    throw new NoSuchElementException("no items under key " + key);
+                }
+                ret = queue.peekFirst();
             }
             return ret;
         }
