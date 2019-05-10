@@ -75,15 +75,31 @@ class SharedChannelPool implements ChannelPool {
             } else if (channel.pipeline().get("HttpResponseDecoder") == null && channel.pipeline().get("HttpClientCodec") == null) {
                 return false;
             } else {
-                ZonedDateTime channelAvailableSince = channel.attr(CHANNEL_AVAILABLE_SINCE).get();
-                if (channelAvailableSince == null) {
-                    channelAvailableSince = channel.attr(CHANNEL_LEASED_SINCE).get();
-                }
-                final long channelIdleDurationInSec = ChronoUnit.SECONDS.between(channelAvailableSince, ZonedDateTime.now(ZoneOffset.UTC));
+                ZonedDateTime channelCreatedSince = channel.attr(CHANNEL_CREATED_SINCE).get();
+//                if (channelCreatedSince == null) {
+//                    channelCreatedSince = channel.attr(CHANNEL_LEASED_SINCE).get();
+//                }
+                final long channelIdleDurationInSec = ChronoUnit.SECONDS.between(channelCreatedSince, ZonedDateTime.now(ZoneOffset.UTC));
                 return channelIdleDurationInSec < this.poolOptions.idleChannelKeepAliveDurationInSec();
             }
         } catch (Throwable t) {
             return false;
+        }
+    }
+
+    private boolean isChannelStuck(Channel channel) {
+        try {
+            if (!channel.isActive()) {
+                return true;
+            } else if (channel.pipeline().get("HttpResponseDecoder") == null && channel.pipeline().get("HttpClientCodec") == null) {
+                return true;
+            } else {
+                ZonedDateTime channelCreatedSince = channel.attr(CHANNEL_LEASED_SINCE).get();
+                final long channelIdleDurationInSec = ChronoUnit.SECONDS.between(channelCreatedSince, ZonedDateTime.now(ZoneOffset.UTC));
+                return channelIdleDurationInSec >= this.poolOptions.idleChannelKeepAliveDurationInSec();
+            }
+        } catch (Throwable t) {
+            return true;
         }
     }
 
@@ -121,7 +137,7 @@ class SharedChannelPool implements ChannelPool {
         while (!closed && wip.updateAndGet(x -> requests.size()) != 0) {
             if (channelCount.get() >= poolSize && available.size() == 0) {
                 Channel first = leased.peekFirst();
-                while (first != null && !isChannelHealthy(first)) {
+                while (first != null && isChannelStuck(first)) {
                     leased.poll();
                     closeChannel(first);
                     channelCount.decrementAndGet();
